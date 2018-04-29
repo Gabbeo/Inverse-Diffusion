@@ -1,0 +1,55 @@
+import numpy as np
+import matplotlib.pyplot as plot
+from matplotlib.ticker import LogFormatter
+from matplotlib.ticker import FuncFormatter
+
+cost_values = np.load("cost_values.npy")
+NSE_values = np.load("NSE_values.npy")
+GS_values = np.load("GS_value.npy")
+iterations = np.load("iterations.npy")
+
+# Display plots.
+x_axis = np.linspace(10, iterations, int(iterations / 10))
+np_x_log_axis = np.log10(x_axis)
+
+ax = plot.figure(figsize=(2*0.47*8.5, 2*0.10*11)).gca()
+ax.loglog(x_axis, cost_values)
+plot.yscale('log', subsy=[1.600, 2.52, 4.00, 6.4550])
+ax.xaxis.set_major_formatter(LogFormatter())
+ax.yaxis.set_major_formatter(FuncFormatter(lambda x, pos: str(int(round(10*np.log10(x))))))
+ax.yaxis.set_minor_formatter(FuncFormatter(lambda x, pos: str(int(round(10*np.log10(x))))))
+ax.yaxis.grid(True, which="both")
+ax.xaxis.grid(True, which="both")
+ax.set_xlim(xmin=9)
+ax.set_title("Cost Function [dB]")
+ax.set_xlabel("Number of iterations")
+plot.savefig('cost.eps', format='eps', dpi=1000, bbox_inches=0)
+plot.show()
+
+ax = plot.figure(figsize=(0.47*8.5, 2*0.10*11)).gca()
+ax.loglog(x_axis, NSE_values)
+plot.yscale('log', subsy=[1.600, 2.52, 4.00, 6.4550])
+ax.xaxis.set_major_formatter(LogFormatter())
+ax.yaxis.set_major_formatter(FuncFormatter(lambda x, pos: str(int(round(10*np.log10(x))))))
+ax.yaxis.set_minor_formatter(FuncFormatter(lambda x, pos: str(int(round(10*np.log10(x))))))
+ax.yaxis.grid(True, which="both")
+ax.xaxis.grid(True, which="both")
+ax.set_xlim(xmin=9)
+ax.set_title("NSE [dB]")
+ax.set_xlabel("Number of iterations")
+plot.savefig('NSE.eps', format='eps', dpi=1000, bbox_inches=0)
+plot.show()
+
+ax = plot.figure(figsize=(0.47*8.5, 2*0.10*11)).gca()
+ax.loglog(x_axis, GS_values)
+plot.yscale('log', subsy=[1.600, 2.52, 4.00, 6.4550])
+ax.xaxis.set_major_formatter(LogFormatter())
+ax.yaxis.set_major_formatter(FuncFormatter(lambda x, pos: str(int(round(10*np.log10(x))))))
+ax.yaxis.set_minor_formatter(FuncFormatter(lambda x, pos: str(int(round(10*np.log10(x))))))
+ax.yaxis.grid(True, which="both")
+ax.xaxis.grid(True, which="both")
+ax.set_xlim(xmin=9)
+ax.set_title("GS [dB]")
+ax.set_xlabel("Number of iterations")
+plot.savefig('GS.eps', format='eps', dpi=1000, bbox_inches=0)
+plot.show()
