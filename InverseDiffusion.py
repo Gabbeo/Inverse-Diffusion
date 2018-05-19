@@ -100,12 +100,12 @@ with tf.name_scope('inverse') as scope2:
 
             with tf.name_scope('difference') as scope2_3:
                 # A factor 2 is included to counteract the factor 0.5 built into the tf.nn.l2_loss function.
-                loss = tf.nn.l2_loss(tf.multiply(W, D_obs - B_convolution_extended)) * 2
+                cost = tf.nn.l2_loss(tf.multiply(W, D_obs - B_convolution_extended)) * 2
                 with tf.name_scope('gradient') as scope2_3_1:
-                    gradient_step = tf.gradients(loss, B)[0]
+                    gradient_step = tf.gradients(cost, B)[0]
                 A_assign = tf.assign(A, tf.clip_by_value(tf.subtract(B, 1 / 2 * eta * gradient_step), 0.0, np.infty))
 
-                difference_run = [loss, gradient_step, A_assign]
+                difference_run = [cost, gradient_step, A_assign]
 
         with tf.control_dependencies(convolution_run + difference_run):
             with tf.name_scope('regularizer') as scope2_4:
@@ -176,7 +176,7 @@ with tf.name_scope('inverse') as scope2:
         NSE = tf.divide(tf.nn.l2_loss(NSE_convolution_extended - D_obs), tf.nn.l2_loss(D_obs))
 
         # Cost function
-        cost = tf.nn.l2_loss(tf.multiply(W, D_obs - NSE_convolution_extended)) * 2
+        cost_function_A = tf.nn.l2_loss(tf.multiply(W, D_obs - NSE_convolution_extended)) * 2
 
         # GS
         GS = tf.reduce_sum(tf.sqrt(tf.reduce_sum(tf.square(A), 3)))
@@ -197,7 +197,7 @@ session.run([image_run, variables_run])
 # Create a file writer for TensorBoard.
 current_date = datetime.datetime.strftime(datetime.datetime.now(), "%y%m%d_%H%M%S")
 file_writer = tf.summary.FileWriter("logs/" + current_date, session.graph)
-loss_summary = tf.summary.scalar("Loss function", loss)
+cost_summary = tf.summary.scalar("Cost function", cost)
 
 
 # Run the image part once and extract the result as a numpy-array.
@@ -227,21 +227,21 @@ for iteration in range(iterations):
         session.run([convolution_run, difference_run, regularizer_run, multiply_run, speedup_run])
 
     if (iteration + 1) % 10 == 0 and iteration != 0:
-        # Saves the loss and current image to TensorBoard.
-        loss_value = session.run(loss_summary)
-        file_writer.add_summary(loss_value, iteration)
+        # Saves the cost function value and current image to TensorBoard.
+        cost_value = session.run(cost_summary)
+        file_writer.add_summary(cost_value, iteration)
 
         if save_graph_information:
             file_writer.add_run_metadata(run_metadata, 'Step%d' % iteration)
 
-        current_cost_value = session.run(cost)
+        current_cost_value = session.run(cost_function_A)
         NSE_values.append(session.run(NSE))
         GS_values.append(session.run(GS))
         cost_values.append(current_cost_value)
         print("Iteration:", format(iteration + 1, '4.0f'), "| Cost:", format(current_cost_value, '.0f'),
               "(", format(10 * np.log10(current_cost_value), "2.2f"), "dB)")
 
-    if iteration % 100 == 0 and iteration != 0:
+    if (iteration + 1) % 100 == 0 and iteration != 0:
         print("Iteration:", format(iteration + 1, '4.0f'))
         print("Total time spent iterating:", format(time.clock() - setup_end_time, '.2f'), "s")
         print("Average time per iteration:", format((time.clock() - setup_end_time) / (iteration + 1), '.2f'), "s")
